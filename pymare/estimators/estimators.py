@@ -221,7 +221,8 @@ class Hedges(BaseEstimator):
 
 
 class CombinationTest(BaseEstimator):
-    """Base class for methods based on combining p/z values."""
+    """Base class for methods based on combining p/z values.
+    """
     def __init__(self, input='z', p_type='right'):
         self.input = input
         self.p_type = p_type
@@ -233,16 +234,19 @@ class CombinationTest(BaseEstimator):
                 y = 1 - y
             elif self.p_type.startswith('two'):
                 y = y / 2
+            elif self.p_type != 'right':
+                raise ValueError('Unsupported `p_type`: {}'.format(self.p_type))
+
             if np.any(y < 0.) or np.any(y > 1.):
                 raise ValueError(
                     "Invalid p-values (< 0 or > 1) passed as inputs.")
-            y = stats.norm.ppf(y)
+            y = scipy.stats.norm.isf(y)
         return y
 
     def _get_p(self, y):
         # Return the p-value/z-score input as p
         if self.input == 'z':
-           return stats.norm.cdf(y)
+            return stats.norm.sf(y)
         return y
 
     def summary(self):
@@ -290,7 +294,7 @@ class Stouffers(CombinationTest):
 
         z = (y * v).sum(0) / np.sqrt((v**2).sum(0))
 
-        return {'z': z }
+        return {'z': z}
 
 
 class Fishers(CombinationTest):
@@ -325,8 +329,8 @@ class Fishers(CombinationTest):
         y = self._get_p(y)
 
         chi2 = -2 * np.log(y).sum(0)
-        p = 1 - stats.chi2.cdf(chi2, 2 * y.shape[0])
-        z = stats.norm.ppf(p)
+        p = stats.chi2.sf(chi2, 2 * y.shape[0])
+        z = stats.norm.isf(p)
 
         return {'z': z}
 
@@ -425,10 +429,10 @@ class SampleSizeBasedLikelihoodEstimator(BaseEstimator):
         keyword arguments.
 
     References:
-        Sangnawakij, P., Böhning, D., Niwitpong, S. A., Adams, S., Stanton, M., 
-        & Holling, H. (2019). Meta-analysis without study-specific variance 
-        information: Heterogeneity case. Statistical Methods in Medical Research, 
-        28(1), 196–210. https://doi.org/10.1177/0962280217718867    
+        Sangnawakij, P., Böhning, D., Niwitpong, S. A., Adams, S., Stanton, M.,
+        & Holling, H. (2019). Meta-analysis without study-specific variance
+        information: Heterogeneity case. Statistical Methods in Medical Research,
+        28(1), 196–210. https://doi.org/10.1177/0962280217718867
     """
 
     def __init__(self, method='ml', **kwargs):
