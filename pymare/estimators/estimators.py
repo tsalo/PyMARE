@@ -240,7 +240,7 @@ class CombinationTest(BaseEstimator):
             if np.any(y < 0.) or np.any(y > 1.):
                 raise ValueError(
                     "Invalid p-values (< 0 or > 1) passed as inputs.")
-            y = scipy.stats.norm.isf(y)
+            y = stats.norm.isf(y)
         return y
 
     def _get_p(self, y):
