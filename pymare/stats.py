@@ -6,6 +6,7 @@ from scipy.optimize import minimize, Bounds
 
 from . import utils
 
+
 def weighted_least_squares(y, v, X, tau2=0., return_cov=False):
     """2-D weighted least squares.
 
